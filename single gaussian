@@ -1,0 +1,72 @@
+%taux d'apprentissage
+epsilon = 10^(-3);
+n = 10;
+m = 1000; 
+
+%génération des training examples
+mu = 45;
+sigma2 =10;
+Y = normrnd(mu,sigma2,[1 m]);
+
+%conversion en binaire des données
+Y_int = floor(Y);
+Y_binary = de2bi(Y_int,n);
+X1 = zeros(n,m);
+X2 = zeros(n,m);
+
+%Initialisation des paramètres
+W0 = zeros(n,n);
+    
+%Début entraînement du modèle sur les training examples
+for i =1:m
+        X1(:,i) = Y_binary(i,:);
+        for d = 1:n
+            s1 = 0;
+            for c = 1:n
+                if c ~= d
+                s1 = s1 + W0(d,c)*X1(c,i);
+end; end;
+            p1 = (1/(1+exp(-s1)));
+            p0 = 1-p1;
+            X2(d,i) = randsample(0:1,1,true,[p0 p1]);
+        end;
+%Début descente de Gradient
+        for a=1:n
+               for b=1:n
+                    W0(a,b) = W0(a,b) +
+                    epsilon*0.5*(X1(a,i)*X1(b,i)-
+                    X2(a,i)*X2(b,i));
+end; end;
+
+%Fin descente de Gradient
+
+%Fin entraînement du modèle sur les training examples
+
+%Début de la comparaison entre les résultats obtenus et le modèle
+théorique générateur.
+k = 100;
+X = zeros(1,k);
+result = zeros(1,k);
+for i = 1:k
+    X(i)=i;
+end;
+X_binary = de2bi(X,n);
+for i = 1:k
+     result(i) =
+     exp(0.5*X_binary(i,:)*W0*transpose(X_binary(i,:)));
+end;
+
+%Détermination de la constante de normalisation
+Q = trapz(X,result);
+
+%Densité théorique
+for i = 1:k
+     Xnormal(i) = (1/sqrt(sigma2*2*pi))*exp(-0.5*(X(i)-mu)*(X(i)-
+mu)/sigma2);
+end;
+
+%Affichage des résultats
+figure
+plot(X,result/Q,'*');
+hold on
+plot(X,Xnormal,'*');
